@@ -58,7 +58,7 @@ Create your registry, and specify with `lookup` when you are in your testing env
 // dep.js
 import { createRegistry } from 'dependency-registry'
 export const dep = createRegistry({ lookup: process.env.NODE_ENV === 'test' })
-// now imporat "dep" where ever you need it.
+// now import "dep" where ever you need it.
 ```
 
 Only when "lookup" is true, it will use the registry, otherwise it will simply return the provided value again!
@@ -90,7 +90,7 @@ dep('Api', api).doSomething()
 dep.register('Api', /**/)
 ```
 
-Of course, `const api = new dep(Api)()` would have also worked, not requiring n explicit name.
+Of course, `const api = new dep(Api)()` would have also worked, not requiring an explicit name.
 
 ## Things you can mock
 
@@ -123,10 +123,10 @@ This library supports some common scenarios out of the box. For more complex sce
 ### How to know if my mock was used
 
 ```typescript
-it('will get a random fact', () => {
+it('will get a random fact', async () => {
   const fakeFetch = dep.register(fetch, /* */)
 
-  getVideo()
+  await getFact()
 
   expect(fakeFetch.wasCalled).toBe(true)
 })
@@ -192,4 +192,4 @@ it('will get a random fact', () => {
 })
 ```
 
-The arguments provided get intercepted and saved. For each time, fetch is called, its arguments get intercepted, hence the two-dimensional array.
+The arguments provided get intercepted and saved. You can access each set of arguments no matter how often your mock was called, hence the two-dimensional array.
