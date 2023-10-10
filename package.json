@@ -1,15 +1,24 @@
 {
   "name": "mockzen",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
     "clean": "rm -rf dist",
+    "test": "jest",
     "copymeta": "cp README.md package.json dist",
-    "build": "npm run clean && tsc && npm run copymeta",
-    "publish:dist": "npm run build && cd dist && npm publish"
+    "build": "npm run clean && tsc",
+    "publish:dist": "npm run build && npm run copymeta && cd dist && npm publish"
   },
-  "keywords": ["mock", "testing", "unit", "fake", "stub", "dependency", "ioc"],
+  "keywords": [
+    "mock",
+    "testing",
+    "unit",
+    "fake",
+    "stub",
+    "dependency",
+    "ioc"
+  ],
   "author": "Michael Zanggl",
   "repository": {
     "type": "git",
@@ -17,6 +26,7 @@
   },
   "license": "MTI",
   "devDependencies": {
+    "jest": "^29.7.0",
     "typescript": "^5.2.2"
   }
 }

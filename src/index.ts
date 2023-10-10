@@ -1,5 +1,6 @@
-export function createRegistry({ lookup = false } = {}) {
+export function createRegistry() {
   let registry = new Map
+  let lookup = false
   
   function dep<T>(name: any, symbol: T): T
   function dep<T>(name: T): T
@@ -9,27 +10,34 @@ export function createRegistry({ lookup = false } = {}) {
     }
 
     if (registry.has(name)) {
-      const entry = registry.get(name)
-
-      const returnValue = entry.callback({...entry})
-      entry.timesCalled++
-      entry.wasCalled = true
-      if (typeof returnValue === 'function') {
-        return (...args) => {
-          entry.arguments.push(args)
-          return returnValue(...args)
-        }
-      }
-      return returnValue
+      return registry.get(name).symbol
     }
 
     throw new Error(`${name} not found in dependency registry`)
   }
 
-  dep.register = function(name, callback) {
-    const dependency = { callback, timesCalled: 0, arguments: [], wasCalled: false }
+  dep.enable = function() {
+    lookup = true
+  }
+
+  dep.fake = function(callback?: Function) {
+    function fakeFunction(...args) {
+      fakeFunction.called = true
+      fakeFunction.callCount++
+      fakeFunction.args = [args]
+
+      return callback?.(...args)
+    }
+
+    fakeFunction.called = false
+    fakeFunction.callCount = 0
+    fakeFunction.args = []
+    return fakeFunction
+  }
+
+  dep.register = function(name, symbol) {
+    const dependency = { symbol }
     registry.set(name, dependency)
-    return dependency
   }
   
   dep.reset = function() {
@@ -39,7 +47,5 @@ export function createRegistry({ lookup = false } = {}) {
   return dep
 }
 
-
-const dep = createRegistry()
-
-dep(fetch)
+// default dep
+export const dep = createRegistry()

@@ -1,5 +1,7 @@
 # mockzen
 
+<!-- TODO: FIX REUSE IN NPM LIBS. MY SOLUTION DOESN"T WORK! -->
+
 ## Introduction
 
 Easily mock any dependencies in your code during testing
@@ -28,18 +30,18 @@ function getRandomFact() {
 
 During runtime, both pieces of code will behave the same!
 
-In the tests, register a mock:
+But in the tests, you can overwrite its behavior. For this, register a mock:
 
 ```typescript
-dep.register(fetch, () => {
-  return function fakeFetch(url) {
-    return {
-      async json() {
-        return { fact: 'hey'}
-      }
+function fakeFetch(url) {
+  return {
+    async json() {
+      return { fact: 'hey'}
     }
   }
-})
+}
+
+dep.register(fetch, fakeFetch)
 ```
 
 If you did not reigster the mock, your test will fail, so there's no surprise about whether you correctly mocked something or not!
@@ -49,19 +51,15 @@ If you did not reigster the mock, your test will fail, so there's no surprise ab
 Install:
 
 ```bash
-npm install dependency-registry
+npm install mockzen
 ```
 
-Create your registry, and specify with `lookup` when you are in your testing environment:
-
+In the setup of your tests, turn on the requirement for mocks like this:
 ```typescript
-// dep.js
-import { createRegistry } from 'dependency-registry'
-export const dep = createRegistry({ lookup: process.env.NODE_ENV === 'test' })
-// now import "dep" where ever you need it.
-```
+import { dep } from 'mockzen'
 
-Only when "lookup" is true, it will use the registry, otherwise it will simply return the provided value again!
+dep.enable()
+```
 
 ## Naming dependencies
 
@@ -90,8 +88,6 @@ dep('Api', api).doSomething()
 dep.register('Api', /**/)
 ```
 
-Of course, `const api = new dep(Api)()` would have also worked, not requiring an explicit name.
-
 ## Things you can mock
 
 Absolutely anything! While it's recommended to only mock what is absolutely necessary, the library doesn't hinder you in any way.
@@ -101,10 +97,10 @@ Absolutely anything! While it's recommended to only mock what is absolutely nece
 const retryDelay = dep('retry delay', 10_000)
 
 // in test
-dep.register('retry delay', () => 1)
+dep.register('retry delay', 1)
 
 // all of this works too:
-dep(Api)
+dep(Api) // to inline it: new (dep(API))()
 dep('api', new Api)
 dep('download', new Api().download)
 dep('checks', [0, 2, 4, 8])
@@ -116,38 +112,90 @@ dep('checks', [0, 2, 4, 8])
 dep.reset()
 ```
 
-## Testing Utilities
+## Writing library code
 
-This library supports some common scenarios out of the box. For more complex scenarios or easier ways to fake classes, etc., you can integrate `sinon` with this library.
-
-### How to know if my mock was used
+If you are writing a library that will be integrated into other applications, create your own registry to not interfere with the application code:
 
 ```typescript
-it('will get a random fact', async () => {
-  const fakeFetch = dep.register(fetch, /* */)
+// dep.js
+import { createRegistry } from 'mockzen'
+export const dep = createRegistry()
+// now import and use this version of "dep" where ever you need it!
+```
 
-  await getFact()
+## Testing Utilities
 
-  expect(fakeFetch.wasCalled).toBe(true)
+Generally, you can just have custom code to record when a function was called, how many times it was called, what arguments it used, etc.
+But we can simplify this using the fake API.
+
+### fake
+
+You can create a fake function like this:
+
+```typescript
+const fakeApi = dep.fake() // returns undefined
+const fakeApi = dep.fake(() => true) // make it return any value you want
+const fakeApi = dep.fake(async () => true) // make it return a promised value
+```
+
+Next, register this fake function and use it in your assertions:
+
+```typescript
+const fakeApi = dep.fake()
+dep.register(callApi, fakeApi)
+
+await doTheThing()
+
+expect(fakeApi.called).toBe(true)
+expect(fakeApi.callCount).toBe(1)
+expect(fakeApi.args).toEqual([['https://...']])
+```
+
+## Use Cases
+
+### Assert function was called
+
+```typescript
+const { dep } = require('mockzen')
+const { callApi } = require('services/api')
+
+it('will ...', async () => {
+  const fakeApi = dep.fake()
+  dep.register(callApi, fakeApi)
+  
+  await doTheThing()
+
+  expect(fakeApi.called).toBe(true)
 })
 ```
 
-### How to return different mocks
+### Mock a (static) class method
 
-#### Depending on the amount of times called
+```typescript
+const fakeApi = dep.fake()
+class FakeClass {
+  callApi = fakeApi
+}
+dep.register(RealClass, FakeClass)
+```
+
+### Return different mocks depending on the amount of times called
 
 You also have the meta information available inside the callback for such scenarios!
 
 ```typescript
-dep.register(fetch, fakeFetch => {
-  if (fakeFetch.timesCalled === 0) {
-    // on first call, return ...
+const fakeFetch = dep.fake(() => {
+  if (fakeFetch.callCount === 1) {
+    // return for first function call
   }
-  // on subsequent calls: return ...
+  // return for subsequent function calls
 })
+dep.register(fetch, fakeFetch)
 ```
 
-#### Depending on the input arguments:
+#### Return different mocks depending on the input arguments:
+
+There is no special function for this, but it's straight forward to write your own:
 
 ```typescript
 async function fakeFetch(url) {
@@ -157,33 +205,15 @@ async function fakeFetch(url) {
   // return ...
 }
 
-dep.register(fetch, () => fakeFetch)
+dep.register(fetch, fakeFetch)
 ```
 
 ### Validate the input arguments
 
-Checking for "wasCalled" will guarantee the function was indeed called, then you can add your assertions safely within the mock!
-
 ```typescript
 it('will get a random fact', () => {
-  const fakeFetch = dep.register(fetch, () => {
-    return async function(url) {
-      expect(url).toBe('...')
-      // return ...
-    }
-  })
-
-  expect(fakeFetch.wasCalled).toBe(true)
-})
-```
-
-You could also assign "url" to a variable that was declared outside, and then assert that at the end of your test.
-
-Finally, for functions and methods specifically (not methods of a class instance you mocked), you can check the "arguments" like this:
-
-```typescript
-it('will get a random fact', () => {
-  const fakeFetch = dep.register(fetch, () => {})
+  const fakeFetch = dep.fake()
+  dep.register(fetch, fakeFetch)
 
   getVideo()
   
@@ -191,5 +221,3 @@ it('will get a random fact', () => {
   expect(fakeFetch.arguments[0]).toEqual(['http://...'])
 })
 ```
-
-The arguments provided get intercepted and saved. You can access each set of arguments no matter how often your mock was called, hence the two-dimensional array.
