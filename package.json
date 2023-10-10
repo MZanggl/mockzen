@@ -1,5 +1,5 @@
 {
-  "name": "dependency-registry",
+  "name": "mockzen",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
@@ -11,6 +11,10 @@
   },
   "keywords": ["mock", "testing", "unit", "fake", "stub", "dependency", "ioc"],
   "author": "Michael Zanggl",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MZanggl/mockzen"
+  },
   "license": "MTI",
   "devDependencies": {
     "typescript": "^5.2.2"
