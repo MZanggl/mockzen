@@ -44,7 +44,7 @@ function fakeFetch(url) {
 dep.register(fetch, fakeFetch)
 ```
 
-If you did not reigster the mock, your test will fail, so there's no surprise about whether you correctly mocked something or not!
+If you did not register the mock, your test will fail, so there's no surprise about whether you correctly mocked something or not!
 
 ## Get Started
 
@@ -63,9 +63,16 @@ dep.enable()
 
 ## Naming dependencies
 
-You need to name dependencies that can't be looked up otherwise (when shallow comparison isn't possible):
+There is no need to name dependencies that are functions or classes. For example:
 
-This won't work:
+```typescript
+dep(SomeService)
+dep(someFunction)
+```
+
+But you need to name dependencies that can't be looked up using shallow comparison:
+
+This won't work as expected:
 
 ```typescript
 // code
@@ -77,7 +84,7 @@ dep.register(new API(), /* */)
 
 But no worries, it still won't affect your runtime code, and your test will still fail to inform you that there was a missing mock.
 
-This will work:
+Give it a name to allow mocking it:
 
 ```typescript
 // code
@@ -218,6 +225,6 @@ it('will get a random fact', () => {
   getVideo()
   
   // [0] to access arguments of first call
-  expect(fakeFetch.arguments[0]).toEqual(['http://...'])
+  expect(fakeFetch.args[0]).toEqual(['http://...'])
 })
 ```
