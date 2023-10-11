@@ -15,7 +15,7 @@ export function createRegistry() {
   function dep<T>(name: any, symbol: T): T;
   function dep<T>(name: T): T;
   function dep<T>(name: any, symbol = name) {
-    if (!dep.enabled) {
+    if (!dep.testEnvEnabled) {
       return symbol;
     }
 
@@ -26,10 +26,10 @@ export function createRegistry() {
     throw new Error(`${getSymbolName(name)} not found in dependency registry`);
   }
 
-  dep.enabled = false;
+  dep.testEnvEnabled = false;
 
-  dep.enable = function () {
-    dep.enabled = true;
+  dep.enableTestEnv = function () {
+    dep.testEnvEnabled = true;
   };
 
   function getCallArgs(args: any[]) {
@@ -76,4 +76,4 @@ export function createRegistry() {
 
 // default dep
 export const dep = createRegistry();
-dep.enabled = [true, 1, "1"].includes(process.env.MOCKZEN_TEST_ENV);
+dep.testEnvEnabled = [true, 1, "1"].includes(process.env.MOCKZEN_TEST_ENV);

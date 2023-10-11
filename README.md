@@ -58,7 +58,7 @@ In the global setup of your tests, turn on the requirement for mocks like this:
 ```typescript
 import { dep } from 'mockzen'
 
-dep.enable()
+dep.enableTestEnv()
 ```
 
 Alternatively, you can set the environment variable `MOCKZEN_TEST_ENV` to `true` or `1` for test runners like jest.
@@ -66,7 +66,7 @@ Alternatively, you can set the environment variable `MOCKZEN_TEST_ENV` to `true`
 If you want to verify that dep is indeed looking up dependencies, you can do so like this in your tests:
 
 ```typescript
-expect(dep.enabled).toBe(true)
+expect(dep.testEnvEnabled).toBe(true)
 ```
 
 ## Naming dependencies
@@ -138,7 +138,7 @@ export const dep = createRegistry()
 // now import and use this version of "dep" where ever you need it!
 ```
 
-Note that the environment variable `MOCKZEN_TEST_ENV` does not affect custom registries. This is again so they don't interfere with application code. Please use the explicit `dep.enable()`!
+Note that the environment variable `MOCKZEN_TEST_ENV` does not affect custom registries. This is again so they don't interfere with application code. Please use the explicit `dep.enableTestEnv()`!
 
 ## Testing Utilities
 
