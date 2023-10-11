@@ -9,10 +9,61 @@ describe('fake', () => {
     fake()
     expect(fake.called).toBe(true)
   })
+
+  it('will update callCount correctly', () => {
+    dep.enable()
+    const fake = dep.fake()
+    fake()
+    fake()
+    expect(fake.callCount).toBe(2)
+  })
+
+  it('will allow accessing args through the various fields', () => {
+    dep.enable()
+    const fake = dep.fake()
+    fake(1, 2, 3)
+    fake(4, 5, 6)
+    fake(7, 8, 9)
+
+    expect(fake.calls).toEqual([fake.firstCall, fake.secondCall,fake.lastCall])
+    expect(fake.firstCall.firstArg).toBe(1)
+    expect(fake.firstCall.secondArg).toBe(2)
+    expect(fake.firstCall.lastArg).toBe(3)
+    expect(fake.firstCall.args).toEqual([1, 2, 3])
+
+    expect(fake.secondCall.firstArg).toBe(4)
+    expect(fake.secondCall.secondArg).toBe(5)
+    expect(fake.secondCall.lastArg).toBe(6)
+    expect(fake.secondCall.args).toEqual([4, 5, 6])
+
+    expect(fake.lastCall.firstArg).toBe(7)
+    expect(fake.lastCall.secondArg).toBe(8)
+    expect(fake.lastCall.lastArg).toBe(9)
+    expect(fake.lastCall.args).toEqual([7, 8, 9])
+  })
 })
 
-describe('Validate Use Cases from README', () => {
-  it('validates "How to know if my mock was used"', () => {
+describe('dep', () => {
+  it('will crash with a clean description when a mock was forgotten', () => {
+    dep.enable()
+
+    function fetchApi() {}
+    expect(() => dep(fetchApi)).toThrow('fetchApi not found in dependency registry')
+
+    const api2 = () => {}
+    expect(() => dep(api2)).toThrow('api2 not found in dependency registry')
+
+    expect(() => dep(() => { const test = 1 })).toThrow(`Anonymous Function (() => {
+      const test = 1;
+    }) not found in dependency registry`)
+    
+    class MyService {}
+    expect(() => dep(MyService)).toThrow('MyService not found in dependency registry')
+    const service = new MyService
+    expect(() => dep(service)).toThrow('Instance of MyService not found in dependency registry')
+  })
+
+  it('Can use fake function in dep registrations', () => {
     dep.enable()
     function callApi() {
       return false
@@ -25,9 +76,7 @@ describe('Validate Use Cases from README', () => {
       expect(response).toBe(true)
       expect(fakeApi.called).toBe(true)
   })
-})
 
-describe('Other derived examples', () => {
   it('can mock and intercept class methods', () => {
     dep.enable()
 
@@ -46,25 +95,20 @@ describe('Other derived examples', () => {
     dep.register(RealQueryService, FakeQueryService);
 
     // the code
-    const Duped = dep(RealQueryService)
-    new Duped().query()
+    new (dep(RealQueryService))().query()
 
     expect(fakeQueryMethod.callCount).toBe(1)
   })
 
-  it('can execute different code depending on how many times it was called', () => {
+  it('can return different results depending on how many times the function was called', () => {
     dep.enable()
     
     const fakeMethod = dep.fake(function(letter) {
-      console.log(fakeMethod.callCount)
-      if (fakeMethod.callCount ===1) return letter + 1
+      if (fakeMethod.callCount === 1) return letter + 1
       return letter + 2
     })
 
     expect(fakeMethod('a')).toBe('a1')
     expect(fakeMethod('b')).toBe('b2')
   })
-
-
-
 })

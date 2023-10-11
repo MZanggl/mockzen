@@ -54,11 +54,19 @@ Install:
 npm install mockzen
 ```
 
-In the setup of your tests, turn on the requirement for mocks like this:
+In the global setup of your tests, turn on the requirement for mocks like this:
 ```typescript
 import { dep } from 'mockzen'
 
 dep.enable()
+```
+
+Alternatively, you can set the environment variable `MOCKZEN_TEST_ENV` to `true` or `1` for test runners like jest.
+
+If you want to verify that dep is indeed looking up dependencies, you can do so like this in your tests:
+
+```typescript
+expect(dep.enabled).toBe(true)
 ```
 
 ## Naming dependencies
@@ -130,6 +138,8 @@ export const dep = createRegistry()
 // now import and use this version of "dep" where ever you need it!
 ```
 
+Note that the environment variable `MOCKZEN_TEST_ENV` does not affect custom registries. This is again so they don't interfere with application code. Please use the explicit `dep.enable()`!
+
 ## Testing Utilities
 
 Generally, you can just have custom code to record when a function was called, how many times it was called, what arguments it used, etc.
@@ -155,8 +165,22 @@ await doTheThing()
 
 expect(fakeApi.called).toBe(true)
 expect(fakeApi.callCount).toBe(1)
-expect(fakeApi.args).toEqual([['https://...']])
+expect(fakeApi.firstCall.firstArg).toEqual('https://...')
 ```
+
+You can access different calls through the following fields:
+
+- calls: an array of all calls
+- firstCall: holds details of the first call to the function
+- secondCall: holds details of the second call to the function
+- lastCall: holds details of the last call to the function
+
+Each call has the following properties:
+
+- args: an array of arguments used to call the function
+- firstArg: the first argument
+- secondArg: the second argument
+- lastArg: the last argument
 
 ## Use Cases
 
@@ -224,7 +248,6 @@ it('will get a random fact', () => {
 
   getVideo()
   
-  // [0] to access arguments of first call
-  expect(fakeFetch.args[0]).toEqual(['http://...'])
+  expect(fakeFetch.firstCall.firstArg).toEqual('http://...')
 })
 ```
