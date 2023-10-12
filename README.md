@@ -61,7 +61,7 @@ import { dep } from 'mockzen'
 dep.enableTestEnv()
 ```
 
-Alternatively, you can set the environment variable `MOCKZEN_TEST_ENV` to `true` or `1` for test runners like jest.
+Alternatively, you can set the environment variable `MOCKZEN_TEST_ENV` to `true` or `1` for test runners like jest, which lack a global setup function that runs in the same process.
 
 If you want to verify that dep is indeed looking up dependencies, you can do so like this in your tests:
 
@@ -150,9 +150,9 @@ But we can simplify this using the fake API.
 You can create a fake function like this:
 
 ```typescript
-const fakeApi = dep.fake() // returns undefined
-const fakeApi = dep.fake(() => true) // make it return any value you want
-const fakeApi = dep.fake(async () => true) // make it return a promised value
+const fakeApi = dep.fake() // returns undefined when called
+const fakeApi = dep.fake(() => true) // returns true when called
+const fakeApi = dep.fake(async () => true) // returns a promised value when called
 ```
 
 Next, register this fake function and use it in your assertions:

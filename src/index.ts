@@ -76,4 +76,4 @@ export function createRegistry() {
 
 // default dep
 export const dep = createRegistry();
-dep.testEnvEnabled = [true, 1, "1"].includes(process.env.MOCKZEN_TEST_ENV);
+dep.testEnvEnabled = ['true', true, 1, "1"].includes(process.env.MOCKZEN_TEST_ENV);
