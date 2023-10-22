@@ -119,25 +119,6 @@ dep('download', new Api().download)
 dep('checks', [0, 2, 4, 8])
 ```
 
-## Emptying the registry
-
-```typescript
-dep.reset()
-```
-
-## Writing library code
-
-If you are writing a library that will be integrated into other applications, create your own registry to not interfere with the application code:
-
-```typescript
-// dep.js
-import { createRegistry } from 'mockzen'
-export const dep = createRegistry()
-// now import and use this version of "dep" where ever you need it!
-```
-
-Note that the environment variable `MOCKZEN_TEST_ENV` does not affect custom registries. This is again so they don't interfere with application code. Please use the explicit `dep.enableTestEnv()`!
-
 ## Testing Utilities
 
 Generally, you can just have custom code to record when a function was called, how many times it was called, what arguments it used, etc.
@@ -179,6 +160,25 @@ Each call has the following properties:
 - firstArg: the first argument
 - secondArg: the second argument
 - lastArg: the last argument
+
+## Emptying the registry
+
+```typescript
+dep.reset()
+```
+
+## Writing library code
+
+If you are writing a library that will be integrated into other applications, create your own registry to not interfere with the application code:
+
+```typescript
+// dep.js
+import { createRegistry } from 'mockzen'
+export const dep = createRegistry()
+// now import and use this version of "dep" where ever you need it!
+```
+
+Note that the environment variable `MOCKZEN_TEST_ENV` does not affect custom registries. This is again so they don't interfere with application code. Please use the explicit `dep.enableTestEnv()`!
 
 ## Use Cases
 
