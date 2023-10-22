@@ -1,10 +1,8 @@
 # mockzen
 
-<!-- TODO: FIX REUSE IN NPM LIBS. MY SOLUTION DOESN"T WORK! -->
-
 ## Introduction
 
-Easily mock any dependencies in your code during testing
+Make any piece of code testable! Easily mock any dependencies in your code during testing
 
 - doesn't matter what paradigm you are using - no rearchitecture to ioc containers required
 - doesn't matter the way you or your NPM dependencies import/export functions, classes, etc.
