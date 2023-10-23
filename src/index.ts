@@ -33,6 +33,11 @@ export function createRegistry() {
 
   dep.testEnvEnabled = false;
 
+  /**
+   * Makes the variables yo uspecify as arguments testable/
+   */
+  dep.injectable = (...args: any[]) => {}
+
   dep.enableTestEnv = function () {
     dep.testEnvEnabled = true;
   };

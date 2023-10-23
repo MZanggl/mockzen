@@ -26,6 +26,15 @@ function getRandomFact() {
 }
 ```
 
+or using code injection (see below):
+
+```typescript
+function getRandomFact() {
+  dep.injectable(fetch)
+  const res = await fetch('https://catfact.ninja/fact')
+}
+```
+
 During runtime, both pieces of code will behave the same!
 
 But in the tests, you can overwrite its behavior. For this, register a mock:
@@ -132,6 +141,59 @@ it('...', async () => {
   await doSomething()
 })
 ```
+
+## Code Injection (experimental)
+
+The current approach has a few downsides such as:
+- having to wrap code with dep() can become cumbersome, and syntax isn't clean with things like classes
+- you have to wrap the same object each time you interact with it
+
+But we can make dependencies auto-injectable to go from:
+
+```javascript
+function getRandomFact() {
+  const cachedFact = dep(redis).get('cats:fact')
+  if (cachedFact) {
+    return cachedFact
+  }
+  const { fact } = await dep(fetch)('https://catfact.ninja/fact')
+  dep(redis).set('cats:fact', fact)
+  return fact
+}
+```
+
+to this:
+```javascript
+function getRandomFact() {
+  dep.injectable(redis, fetch)
+  const cachedFact = redis.get('cats:fact')
+  if (cachedFact) {
+    return cachedFact
+  }
+  const { fact } = await fetch('https://catfact.ninja/fact')
+  redis.set('cats:fact', fact)
+  return fact
+}
+```
+
+So the only change from original code to testable code is to add a single line `dep.injectable(redis, fetch)` at the top.
+
+The only thing you have to do to make this work is add the transformer to your configuration file.
+
+#### jest
+
+Add the following to your package.json or the respective code to your jest config file:
+
+```json
+{
+  "jest": {
+    "transform": {
+      "^.+\\.js$": "mockzen/transformers/jest"
+    }
+  }
+}
+```
+
 
 ## Testing Utilities
 
