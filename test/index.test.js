@@ -2,7 +2,7 @@ const { dep } = require('../dist/index')
 
 describe('fake', () => {
   it('will set initial callCount correctly', () => {
-    dep.enable()
+    dep.enableTestEnv()
     const fake = dep.fake(() => {
       expect(fake.callCount).toBe(1)
     })
@@ -11,7 +11,7 @@ describe('fake', () => {
   })
 
   it('will update callCount correctly', () => {
-    dep.enable()
+    dep.enableTestEnv()
     const fake = dep.fake()
     fake()
     fake()
@@ -19,7 +19,7 @@ describe('fake', () => {
   })
 
   it('will allow accessing args through the various fields', () => {
-    dep.enable()
+    dep.enableTestEnv()
     const fake = dep.fake()
     fake(1, 2, 3)
     fake(4, 5, 6)
@@ -45,7 +45,7 @@ describe('fake', () => {
 
 describe('dep', () => {
   it('will crash with a clean description when a mock was forgotten', () => {
-    dep.enable()
+    dep.enableTestEnv()
 
     function fetchApi() {}
     expect(() => dep(fetchApi)).toThrow('fetchApi not found in dependency registry')
@@ -63,8 +63,18 @@ describe('dep', () => {
     expect(() => dep(service)).toThrow('Instance of MyService not found in dependency registry')
   })
 
+  it('will not crash if name was explicitly allowed', () => {
+    dep.enableTestEnv()
+    
+    function fetchApi() {}
+    expect(() => dep(fetchApi)).toThrow('fetchApi not found in dependency registry')
+
+    dep.allow(fetchApi)
+    expect(dep(fetchApi)).toBe(fetchApi)
+  })
+
   it('Can use fake function in dep registrations', () => {
-    dep.enable()
+    dep.enableTestEnv()
     function callApi() {
       return false
     }
@@ -78,7 +88,7 @@ describe('dep', () => {
   })
 
   it('can mock and intercept class methods', () => {
-    dep.enable()
+    dep.enableTestEnv()
 
     // the test
     const fakeQueryMethod = dep.fake()
@@ -101,7 +111,7 @@ describe('dep', () => {
   })
 
   it('can return different results depending on how many times the function was called', () => {
-    dep.enable()
+    dep.enableTestEnv()
     
     const fakeMethod = dep.fake(function(letter) {
       if (fakeMethod.callCount === 1) return letter + 1

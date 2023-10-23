@@ -119,6 +119,20 @@ dep('download', new Api().download)
 dep('checks', [0, 2, 4, 8])
 ```
 
+## Allow
+
+If you have tests that need something mocked only sometimes, you can disable the mocking requirement like this:
+
+```javascript
+it('...', async () => {
+  dep.allow('api')
+  dep.allow(fetch)
+
+  // can now execute code without providing mock for api and fetch
+  await doSomething()
+})
+```
+
 ## Testing Utilities
 
 Generally, you can just have custom code to record when a function was called, how many times it was called, what arguments it used, etc.

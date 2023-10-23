@@ -11,6 +11,7 @@ function getSymbolName(name: any) {
 
 export function createRegistry() {
   let registry = new Map();
+  let allowedList = [];
 
   function dep<T>(name: any, symbol: T): T;
   function dep<T>(name: T): T;
@@ -21,6 +22,10 @@ export function createRegistry() {
 
     if (registry.has(name)) {
       return registry.get(name).symbol;
+    }
+
+    if (allowedList.includes(name)) {
+      return symbol
     }
 
     throw new Error(`${getSymbolName(name)} not found in dependency registry`);
@@ -69,7 +74,12 @@ export function createRegistry() {
 
   dep.reset = function () {
     registry = new Map();
+    allowedList = [];
   };
+
+  dep.allow = function(name) {
+    allowedList.push(name);
+  }
 
   return dep;
 }
