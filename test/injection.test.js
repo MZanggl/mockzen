@@ -5,12 +5,20 @@ function test() {
   return fetch('http://')
 }
 
+function wrapped() {
+  return test()
+}
+
 function testWithAlias() {
   dep.injectable({ 'hey-test': fetch })
   return fetch('http://')
 }
 
 describe('dep injection code', () => {
+  beforeEach(() => {
+    dep.reset()
+  })
+  
   it('can inject dependencies using aliases', () => {
     dep.enableTestEnv()
 
@@ -32,6 +40,17 @@ describe('dep injection code', () => {
     const fakefetch = dep.fake()
     dep.register('fetch', fakefetch)
     test()
+    expect(fakefetch.called).toBe(true)
+  })
+
+  it('can inject dependencies automatically in nested functions', () => {
+    dep.enableTestEnv()
+
+    expect(() => wrapped()).toThrow('fetch not found in dependency registry')
+
+    const fakefetch = dep.fake()
+    dep.register('fetch', fakefetch)
+    wrapped()
     expect(fakefetch.called).toBe(true)
   })
 })

@@ -166,7 +166,7 @@ to this:
 
 ```javascript
 function getRandomFact() {
-  dep.injectable(redis, fetch) // 👈 This is the only change you need to do
+  dep.injectable({redis, fetch}) // 👈 This is the only change you need to do
   const cachedFact = redis.get('cats:fact')
   if (cachedFact) {
     return cachedFact

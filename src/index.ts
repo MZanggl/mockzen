@@ -47,7 +47,11 @@ export function createRegistry() {
   /**
    * Makes the variables yo uspecify as arguments testable/
    */
-  dep.injectable = (...args: any[]) => {}
+  dep.injectable = (...args: any[]) => {
+    if (dep.testEnvEnabled) {
+      throw new Error('Code transformation was not implemented. Please check the README of mockzen again!')
+    }
+  }
 
   dep.enableTestEnv = function () {
     dep.testEnvEnabled = true;
