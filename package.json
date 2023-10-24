@@ -24,8 +24,14 @@
     "type": "git",
     "url": "https://github.com/MZanggl/mockzen"
   },
+  "jest": {
+    "transform": {
+      "^.+\\.js$": "./transformers/jest"
+    }
+  },
   "license": "MIT",
   "devDependencies": {
+    "@babel/core": "^7.23.2",
     "jest": "^29.7.0",
     "typescript": "^5.2.2"
   }

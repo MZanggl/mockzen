@@ -35,7 +35,7 @@ function getRandomFact() {
 }
 ```
 
-During runtime, both pieces of code will behave the same!
+During runtime, the code will behave exactly as before!
 
 But in the tests, you can overwrite its behavior. For this, register a mock:
 
@@ -152,20 +152,21 @@ But we can make dependencies auto-injectable to go from:
 
 ```javascript
 function getRandomFact() {
-  const cachedFact = dep(redis).get('cats:fact')
+  const cachedFact = dep(redis).get('cats:fact') // 👈 dep here
   if (cachedFact) {
     return cachedFact
   }
-  const { fact } = await dep(fetch)('https://catfact.ninja/fact')
-  dep(redis).set('cats:fact', fact)
+  const { fact } = await dep(fetch)('https://catfact.ninja/fact') // 👈 dep here
+  dep(redis).set('cats:fact', fact) // 👈 dep here
   return fact
 }
 ```
 
 to this:
+
 ```javascript
 function getRandomFact() {
-  dep.injectable(redis, fetch)
+  dep.injectable(redis, fetch) // 👈 This is the only change you need to do
   const cachedFact = redis.get('cats:fact')
   if (cachedFact) {
     return cachedFact

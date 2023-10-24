@@ -53,9 +53,7 @@ describe('dep', () => {
     const api2 = () => {}
     expect(() => dep(api2)).toThrow('api2 not found in dependency registry')
 
-    expect(() => dep(() => { const test = 1 })).toThrow(`Anonymous Function (() => {
-      const test = 1;
-    }) not found in dependency registry`)
+    expect(() => dep(() => { const test = 1 })).toThrow(`Anonymous Function (() => { const test = 1 }) not found in dependency registry`)
     
     class MyService {}
     expect(() => dep(MyService)).toThrow('MyService not found in dependency registry')

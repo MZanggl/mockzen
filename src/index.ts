@@ -23,12 +23,23 @@ export function createRegistry() {
     if (registry.has(name)) {
       return registry.get(name).symbol;
     }
+    if (registry.has(symbol)) {
+      return registry.get(symbol).symbol;
+    }
 
     if (allowedList.includes(name)) {
       return symbol
     }
 
     throw new Error(`${getSymbolName(name)} not found in dependency registry`);
+  }
+
+  dep.multi = (deps: Object) => {
+    const withDeps = {}
+    Object.keys(deps).forEach(key => {
+      withDeps[key] = dep(key, deps[key], { referByNameOrSymbol: true})
+    })
+    return withDeps
   }
 
   dep.testEnvEnabled = false;
