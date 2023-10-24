@@ -4,7 +4,7 @@ const babel = require("@babel/core");
 let nsIndex = 0
 function babelPlugin(babel) {
   const { types: t } = babel;
-  console.log('call babel')
+
   return {
     visitor: {
           CallExpression(innerPath) {
@@ -32,18 +32,17 @@ function babelPlugin(babel) {
               Identifier(idPath) {
                 const propertyName = idPath.node.name;
                 if (propertyName.startsWith(namespace)) return;
-                const isInjectable = properties.some(prop => t.isIdentifier(prop.key, { name: propertyName } ))
-                if (!isInjectable) return;
+                const referencedProperty = properties.find(prop => t.isIdentifier(prop.value, { name: propertyName } ))
+                if (!referencedProperty) return;
                 // prevent updating the key within dep.multi declaration
                 const callee = idPath.parentPath?.parentPath?.parentPath?.node?.callee
                 if (callee?.object?.name === 'dep' && callee?.property?.name === 'multi') return;
-                const identifier = t.identifier(`${namespace}.${propertyName}`);
+                const accessor = referencedProperty.key.name ?? referencedProperty.key.value
+                const identifier = t.identifier(`${namespace}['${accessor}']`);
                 idPath.replaceWith(identifier);
               },
             });
           },
-        // });
-      // },
     },
   };
 };
