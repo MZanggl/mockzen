@@ -37,7 +37,7 @@ export function createRegistry() {
   dep.multi = (deps: Object) => {
     const withDeps = {}
     Object.keys(deps).forEach(key => {
-      withDeps[key] = dep(key, deps[key], { referByNameOrSymbol: true})
+      withDeps[key] = dep(key, deps[key])
     })
     return withDeps
   }
