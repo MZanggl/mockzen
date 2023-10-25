@@ -9,13 +9,17 @@ function getSymbolName(name: any) {
   return name;
 }
 
+interface DepOptions {
+  accessibleBySymbol: boolean 
+}
+
 export function createRegistry() {
   let registry = new Map();
   let allowedList = [];
 
-  function dep<T>(name: any, symbol: T): T;
+  function dep<T>(name: any, symbol: T, options?: DepOptions): T;
   function dep<T>(name: T): T;
-  function dep<T>(name: any, symbol = name) {
+  function dep<T>(name: any, symbol = name, options: Partial<DepOptions> = {}) {
     if (!dep.testEnvEnabled) {
       return symbol;
     }
@@ -23,7 +27,7 @@ export function createRegistry() {
     if (registry.has(name)) {
       return registry.get(name).symbol;
     }
-    if (registry.has(symbol)) {
+    if (options.accessibleBySymbol && registry.has(symbol)) {
       return registry.get(symbol).symbol;
     }
 
@@ -37,7 +41,7 @@ export function createRegistry() {
   dep.multi = (deps: Object) => {
     const withDeps = {}
     Object.keys(deps).forEach(key => {
-      withDeps[key] = dep(key, deps[key])
+      withDeps[key] = dep(key, deps[key], { accessibleBySymbol: true })
     })
     return withDeps
   }

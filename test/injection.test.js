@@ -31,14 +31,20 @@ describe('dep injection code', () => {
     expect(fakefetch.called).toBe(true)
   })
 
-  it('can inject dependencies automatically', () => {
+  it('can inject dependencies automatically using name or reference to symbol', () => {
     dep.enableTestEnv()
 
     expect(test.toString()).toContain(`_mockzenInjected1['fetch']`)
     expect(() => test()).toThrow('fetch not found in dependency registry')
 
-    const fakefetch = dep.fake()
+    let fakefetch = dep.fake()
     dep.register('fetch', fakefetch)
+    test()
+    expect(fakefetch.called).toBe(true)
+
+    dep.reset()
+    fakefetch = dep.fake()
+    dep.register(fetch, fakefetch)
     test()
     expect(fakefetch.called).toBe(true)
   })

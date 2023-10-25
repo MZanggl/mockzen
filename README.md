@@ -30,7 +30,7 @@ or using code injection (see below):
 
 ```typescript
 function getRandomFact() {
-  dep.injectable(fetch)
+  dep.injectable({ fetch })
   const res = await fetch('https://catfact.ninja/fact')
 }
 ```
@@ -40,7 +40,7 @@ During runtime, the code will behave exactly as before!
 But in the tests, you can overwrite its behavior. For this, register a mock:
 
 ```typescript
-function fakeFetch(url) {
+function fakeFetch(url) { // (check out testing utilties below to see how to simplify this!)
   return {
     async json() {
       return { fact: 'hey'}
@@ -75,6 +75,8 @@ If you want to verify that dep is indeed looking up dependencies, you can do so 
 ```typescript
 expect(dep.testEnvEnabled).toBe(true)
 ```
+
+See below for setting up code injection.
 
 ## Naming dependencies
 
@@ -130,7 +132,7 @@ dep('checks', [0, 2, 4, 8])
 
 ## Allow
 
-If you have tests that need something mocked only sometimes, you can disable the mocking requirement like this:
+If you have tests that need something mocked only sometimes, you can disable the mocking requirement in a test like this:
 
 ```javascript
 it('...', async () => {
@@ -177,9 +179,7 @@ function getRandomFact() {
 }
 ```
 
-So the only change from original code to testable code is to add a single line `dep.injectable(redis, fetch)` at the top.
-
-The only thing you have to do to make this work is add the transformer to your configuration file.
+To make this work, add the transformer to your configuration file.
 
 #### jest
 
@@ -195,6 +195,23 @@ Add the following to your package.json or the respective code to your jest confi
 }
 ```
 
+You can also alias fields to register dependencies.
+
+```javascript
+dep.injectable({ MyService })
+
+const apiClient = MyService.createApiClient()
+dep.injectable({ 'apiAlias': apiClient }) // 👈 You can call dep.injectable multiple times as well
+```
+
+Then in your tests, you can register mocks like this:
+
+```javascript
+dep.register(MyService, MyServiceMock)
+dep.register('apiAlias', MyServiceMock)
+```
+
+While you can also register a mock for 'MyService' using a string, it's not recommended as it will be impacted by variable name changes then. With "apiAlias" this is not a problem because we gave it a dedicated name explicitly.
 
 ## Testing Utilities
 
