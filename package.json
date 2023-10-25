@@ -6,9 +6,10 @@
   "scripts": {
     "clean": "rm -rf dist",
     "test": "jest",
-    "copymeta": "cp README.md package.json dist",
-    "build": "npm run clean && tsc",
-    "publish:dist": "npm run build && npm run copymeta && cd dist && npm publish"
+    "copy:meta": "cp README.md package.json dist",
+    "copy:transformers": "cp transformers dist/transformers -r",
+    "build": "npm run clean && tsc && npm run copy:transformers",
+    "publish:dist": "npm run build && npm run copy:meta && cd dist && npm publish"
   },
   "keywords": [
     "mock",
