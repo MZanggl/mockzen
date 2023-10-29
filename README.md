@@ -40,7 +40,7 @@ During runtime, the code will behave exactly as before!
 But in the tests, you can overwrite its behavior. For this, register a mock:
 
 ```typescript
-function fakeFetch(url) { // (check out testing utilties below to see how to simplify this!)
+function fakeFetch(url) {
   return {
     async json() {
       return { fact: 'hey'}
@@ -58,10 +58,11 @@ If you did not register the mock, your test will fail, so there's no surprise ab
 Install:
 
 ```bash
-npm install mockzen
+npm install mockzen --save
 ```
 
-In the global setup of your tests, turn on the requirement for mocks like this:
+In your test or global setup of your tests, turn on the requirement for mocks like this:
+
 ```typescript
 import { dep } from 'mockzen'
 
@@ -130,9 +131,9 @@ dep('download', new Api().download)
 dep('checks', [0, 2, 4, 8])
 ```
 
-## Allow
+## Skip mocking
 
-If you have tests that need something mocked only sometimes, you can disable the mocking requirement in a test like this:
+Mocks are required by default. If you have tests that need something mocked only sometimes, you can disable the mocking requirement in a test like this:
 
 ```javascript
 it('...', async () => {
@@ -201,7 +202,7 @@ You can also alias fields to register dependencies.
 dep.injectable({ MyService })
 
 const apiClient = MyService.createApiClient()
-dep.injectable({ 'apiAlias': apiClient }) // 👈 You can call dep.injectable multiple times as well
+dep.injectable({ 'apiAlias': apiClient }) // 👈 see how you can call dep.injectable multiple times as well.
 ```
 
 Then in your tests, you can register mocks like this:

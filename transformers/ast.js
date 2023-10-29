@@ -48,6 +48,9 @@ function babelPlugin(babel) {
 };
 
 function injectDeps(src) {
+  if (!src.includes('dep.injectable')) {
+    return src
+  }
   const { code } = babel.transformSync(src, {
     plugins: [babelPlugin],
   });
