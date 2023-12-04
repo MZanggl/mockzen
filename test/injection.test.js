@@ -14,6 +14,12 @@ function testWithAlias() {
   return fetch('http://')
 }
 
+function testNested() {
+  const main = { fetch }
+  dep.injectable({ nestedFetch: main.fetch })
+  return main.fetch('http://')
+}
+
 describe('dep injection code', () => {
   beforeEach(() => {
     dep.reset()
@@ -28,6 +34,17 @@ describe('dep injection code', () => {
     const fakefetch = dep.fake()
     dep.register('hey-test', fakefetch)
     testWithAlias()
+    expect(fakefetch.called).toBe(true)
+  })
+  
+  it('can inject nested dependencies', () => {
+    dep.enableTestEnv()
+
+    expect(testNested.toString()).toContain(`_mockzenInjected3['nestedFetch']`)
+
+    const fakefetch = dep.fake()
+    dep.register('nestedFetch', fakefetch)
+    testNested()
     expect(fakefetch.called).toBe(true)
   })
 

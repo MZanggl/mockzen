@@ -1,9 +1,19 @@
 const babel = require("@babel/core");
 
-
 let nsIndex = 0
 function babelPlugin(babel) {
   const { types: t } = babel;
+
+  function traverse(path, namespace, properties) {
+    const referencedProperty = properties.find((prop) => t.isNodesEquivalent(prop.value, path.node));
+    if (!referencedProperty) return;
+    // prevent updating the key within dep.multi declaration
+    const callee = path.parentPath?.parentPath?.parentPath?.node?.callee
+    if (callee?.object?.name === 'dep' && callee?.property?.name === 'multi') return;
+    const accessor = referencedProperty.key.name ?? referencedProperty.key.value
+    const identifier = t.identifier(`${namespace}['${accessor}']`);
+    path.replaceWith(identifier);
+  }
 
   return {
     visitor: {
@@ -29,17 +39,13 @@ function babelPlugin(babel) {
             innerPath.replaceWith(transformedExpression);
 
             innerPath.scope.traverse(innerPath.scope.block, {
-              Identifier(idPath) {
-                const propertyName = idPath.node.name;
+              MemberExpression(path) {
+                traverse(path, namespace, properties)
+              },
+              Identifier(path) {
+                const propertyName = path.node.name;
                 if (propertyName.startsWith(namespace)) return;
-                const referencedProperty = properties.find(prop => t.isIdentifier(prop.value, { name: propertyName } ))
-                if (!referencedProperty) return;
-                // prevent updating the key within dep.multi declaration
-                const callee = idPath.parentPath?.parentPath?.parentPath?.node?.callee
-                if (callee?.object?.name === 'dep' && callee?.property?.name === 'multi') return;
-                const accessor = referencedProperty.key.name ?? referencedProperty.key.value
-                const identifier = t.identifier(`${namespace}['${accessor}']`);
-                idPath.replaceWith(identifier);
+                traverse(path, namespace, properties)
               },
             });
           },
