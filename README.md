@@ -1,5 +1,7 @@
 # mockzen
 
+**Your code isnt untestable, your testing tools are too rigid.**
+
 ## Introduction
 
 Make any piece of code testable! Easily mock any dependencies in your code during testing
@@ -58,7 +60,7 @@ If you did not register the mock, your test will fail, so there's no surprise ab
 Install:
 
 ```bash
-npm install mockzen --save
+npm install mockzen
 ```
 
 In your test or global setup of your tests, turn on the requirement for mocks like this:
@@ -90,19 +92,21 @@ dep(someFunction)
 
 But you need to name dependencies that can't be looked up using shallow comparison:
 
-This won't work as expected:
+For example, this won't work because the variable "api" is not equal to "testApi":
 
 ```typescript
 // code
-dep(new Api()).doSomething()
+const api = new Api()
+dep(api).doSomething()
 
 // test
-dep.register(new API(), /* */)
+const testApi = new Api()
+dep.register(testApi, /* */)
 ```
 
-But no worries, it still won't affect your runtime code, and your test will still fail to inform you that there was a missing mock.
+But your runtime code will still work just fine, and your test will still throw an error to inform you that there was a missing mock.
 
-Give it a name to allow mocking it:
+In such cases, you can give the dependency a custom name:
 
 ```typescript
 // code
@@ -110,12 +114,13 @@ const api = new Api()
 dep('Api', api).doSomething()
 
 // test
-dep.register('Api', /**/)
+const testApi = new Api()
+dep.register('Api', testApi)
 ```
 
 ## Things you can mock
 
-Absolutely anything! While it's recommended to only mock what is absolutely necessary, the library doesn't hinder you in any way.
+Absolutely anything! While it's recommended to only mock what is necessary, the library doesn't hinder you in any way.
 
 ```typescript
 // in code
@@ -147,20 +152,18 @@ it('...', async () => {
 
 ## Code Injection (experimental)
 
-The current approach has a few downsides such as:
-- having to wrap code with dep() can become cumbersome, and syntax isn't clean with things like classes
-- you have to wrap the same object each time you interact with it
+One downside of using "dep()" is needing to apply it each time you interact with the dependency.
 
 But we can make dependencies auto-injectable to go from:
 
 ```javascript
 function getRandomFact() {
-  const cachedFact = dep(redis).get('cats:fact') // 👈 dep here
+  const cachedFact = dep(redis).get('cats:fact') // 👈 dep() here
   if (cachedFact) {
     return cachedFact
   }
-  const { fact } = await dep(fetch)('https://catfact.ninja/fact') // 👈 dep here
-  dep(redis).set('cats:fact', fact) // 👈 dep here
+  const { fact } = await dep(fetch)('https://catfact.ninja/fact') // 👈 dep() here
+  dep(redis).set('cats:fact', fact) // 👈 dep() here
   return fact
 }
 ```
@@ -212,12 +215,34 @@ dep.register(MyService, MyServiceMock)
 dep.register('apiAlias', MyServiceMock)
 ```
 
-While you can also register a mock for 'MyService' using a string, it's not recommended as it will be impacted by variable name changes then. With "apiAlias" this is not a problem because we gave it a dedicated name explicitly.
-
 ## Testing Utilities
 
 Generally, you can just have custom code to record when a function was called, how many times it was called, what arguments it used, etc.
-But we can simplify this using the fake API.
+
+```typescript
+let apiCalled = false
+
+async function fakeCallApi() {
+  apiCalled = true
+  return true
+}
+dep.register(callApi, fakeCallApi)
+
+await someCode()
+
+expect(apiCalled).toBe(true)
+```
+
+But we can simplify this using the fake API:
+
+```typescript
+const fakeCallApi = dep.fake(async () => true) // returns the promised value when called
+dep.register(callApi, fakeCallApi)
+
+await someCode()
+
+expect(fakeCallApi.called).toBe(true)
+```
 
 ### fake
 
