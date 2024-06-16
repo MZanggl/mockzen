@@ -8,7 +8,7 @@ Make any piece of code testable! Easily mock any dependencies in your code durin
 
 - doesn't matter what paradigm you are using - no rearchitecture to ioc containers required
 - doesn't matter the way you or your NPM dependencies import/export functions, classes, etc.
-- doesn't matter if function, class, instance of class, variable, etc.
+- doesn't matter if function, class, instance of class, variable, NPM library, etc.
 - guaranteed mocking or immediate failure - no implicit behavior
 - requires minimal code changes
 
@@ -150,11 +150,42 @@ it('...', async () => {
 })
 ```
 
-## Code Injection (experimental)
 
-One downside of using "dep()" is needing to apply it each time you interact with the dependency.
+## Where to dep()?
 
-But we can make dependencies auto-injectable to go from:
+One downside of using "dep()" is needing to apply it each time you interact with the dependency. This is because dep() is not called where the function/method was declared, but during its implementation:
+
+```typescript
+/* ❌ */ export const fetch = dep(fetch)
+
+function getRandomFact() {
+/*/ ✅ /*/  const res = await fetch('https://catfact.ninja/fact')
+}
+```
+
+But there's two different ways to set this up!
+
+### wrap
+
+Mark function as dependencies **during declaration**, using dep.wrap():
+
+```typescript
+export const myFetch = dep.wrap(fetch)
+```
+
+For each test where "myFetch" gets executed and isn't mocked, it will fail.
+
+You can mock wrapped functions the same way you mock everything else:
+
+```typescript
+dep.register(myFetch, /** Your fake implementation */)
+```
+
+The reason this is not the only API is because it may require a bit more refactoring effort to get working and is limited to just functions.
+
+### Code Injection (experimental)
+
+We can make dependencies auto-injectable to go from:
 
 ```javascript
 function getRandomFact() {

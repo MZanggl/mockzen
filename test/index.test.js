@@ -71,6 +71,17 @@ describe('dep', () => {
     expect(dep(fetchApi)).toBe(fetchApi)
   })
 
+  it('can wrap functions and auto dep them', () => {
+    dep.enableTestEnv()
+    
+    const fetchApi = dep.wrap(function fetchApi() {})
+    
+    expect(() => fetchApi()).toThrow('fetchApi not found in dependency registry')
+
+    dep.register(fetchApi, () => true)
+    expect(fetchApi()).toBeTruthy()
+  })
+
   it('Can use fake function in dep registrations', () => {
     dep.enableTestEnv()
     function callApi() {

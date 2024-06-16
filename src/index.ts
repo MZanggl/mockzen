@@ -93,7 +93,7 @@ export function createRegistry() {
 
   dep.register = function (name, symbol) {
     const dependency = { symbol };
-    registry.set(name, dependency);
+    registry.set(name._mockzenWrapped ?? name, dependency);
   };
 
   dep.reset = function () {
@@ -103,6 +103,16 @@ export function createRegistry() {
 
   dep.allow = function(name) {
     allowedList.push(name);
+  }
+
+  dep.wrap = function<T extends Function>(callback: T) {
+    const wrapped = (...args) => {
+      return dep(callback)(...args)
+    }
+
+    wrapped._mockzenWrapped = callback
+
+    return wrapped as unknown as T
   }
 
   return dep;
