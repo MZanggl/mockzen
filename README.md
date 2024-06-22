@@ -6,9 +6,9 @@
 
 Make any piece of code testable! Easily mock any dependencies in your code during testing
 
-- doesn't matter what paradigm you are using - no rearchitecture to ioc containers required
+- doesn't matter what paradigm you are using - no rearchitecture to DI and ioc containers required
 - doesn't matter the way you or your NPM dependencies import/export functions, classes, etc.
-- doesn't matter if function, class, instance of class, variable, etc.
+- doesn't matter if function, class, instance of class, NPM library, variable, etc.
 - guaranteed mocking or immediate failure - no implicit behavior
 - requires minimal code changes
 
@@ -20,7 +20,7 @@ function getRandomFact() {
 }
 ```
 
-to this (wrapping dependency code in "dep"):
+to this (wrapping dependency variable in "dep"):
 
 ```typescript
 function getRandomFact() {
@@ -71,9 +71,9 @@ import { dep } from 'mockzen'
 dep.enableTestEnv()
 ```
 
-Alternatively, you can set the environment variable `MOCKZEN_TEST_ENV` to `true` or `1` for test runners like jest, which lack a global setup function that runs in the same process.
+Alternatively, set the environment variable `MOCKZEN_TEST_ENV` to `true` or `1` for test runners like jest, which lack a global setup function that runs in the same process.
 
-If you want to verify that dep is indeed looking up dependencies, you can do so like this in your tests:
+If you want to verify that mockzen is indeed looking up dependencies, add this assertion to your tests:
 
 ```typescript
 expect(dep.testEnvEnabled).toBe(true)
@@ -106,7 +106,7 @@ dep.register(testApi, /* */)
 
 But your runtime code will still work just fine, and your test will still throw an error to inform you that there was a missing mock.
 
-In such cases, you can give the dependency a custom name:
+In such cases, give the dependency a custom name:
 
 ```typescript
 // code
@@ -138,7 +138,7 @@ dep('checks', [0, 2, 4, 8])
 
 ## Skip mocking
 
-Mocks are required by default. If you have tests that need something mocked only sometimes, you can disable the mocking requirement in a test like this:
+Mocks are required by default. If you have tests that need something mocked only sometimes, disable the mocking requirement in a test like this:
 
 ```javascript
 it('...', async () => {
@@ -150,11 +150,36 @@ it('...', async () => {
 })
 ```
 
-## Code Injection (experimental)
+## Where to dep()
 
-One downside of using "dep()" is needing to apply it each time you interact with the dependency.
+You need to apply dep() each time you interact with the dependency.
+To reduce the amount of wraps needed, apply "dep" at a lower level.
 
-But we can make dependencies auto-injectable to go from:
+For example, instead of:
+
+```javascript
+function handler1() {
+  dep(factService).call()
+}
+
+function handler2() {
+  dep(factService).call()
+}
+```
+
+apply it in the FactService:
+
+```javascript
+class FactService {
+  call() {
+    dep(fetch)('https://....')
+  }
+}
+```
+
+---
+
+Alternatively, make dependencies auto-injectable to go from:
 
 ```javascript
 function getRandomFact() {
@@ -183,7 +208,7 @@ function getRandomFact() {
 }
 ```
 
-To make this work, add the transformer to your configuration file.
+To make this experimental feature work, add the transformer to your configuration file.
 
 #### jest
 
@@ -199,7 +224,7 @@ Add the following to your package.json or the respective code to your jest confi
 }
 ```
 
-You can also alias fields to register dependencies.
+Aliasing fields is also possible here:
 
 ```javascript
 dep.injectable({ MyService })
@@ -208,7 +233,7 @@ const apiClient = MyService.createApiClient()
 dep.injectable({ 'apiAlias': apiClient }) // 👈 see how you can call dep.injectable multiple times as well.
 ```
 
-Then in your tests, you can register mocks like this:
+Then in your tests, register mocks like this:
 
 ```javascript
 dep.register(MyService, MyServiceMock)
@@ -246,7 +271,7 @@ expect(fakeCallApi.called).toBe(true)
 
 ### fake
 
-You can create a fake function like this:
+Create a fake function like this:
 
 ```typescript
 const fakeApi = dep.fake() // returns undefined when called
